@@ -41,6 +41,8 @@ No legacy Sportsbook tokens and no GitHub snapshots are used.
 | Path | What it is |
 |---|---|
 | `index.html`, `styles.css`, `app.js` | The dashboard: plain HTML, CSS and JavaScript, with no frameworks or dependencies. |
+| `discussions.js` | Discussion data model, local persistence and import/merge logic, kept separate from the UI. |
+| `docs/discussions.md` | Discussion data structure and the plan for a shared backend. |
 | `data/figma-variables-raw.json` | Raw export from Figma: collections, modes, variable IDs and keys, names, descriptions, scopes, and the value per mode (alias or colour). |
 | `data/nds-colour-tokens.json` | **Complete exported token data**: the raw export plus resolved values, alias chains, "aliased by" lists and resolution rules. |
 | `data/nds-colour-tokens.js` | The same data as a script, so `index.html` works from disk. |
@@ -91,6 +93,49 @@ No legacy Sportsbook tokens and no GitHub snapshots are used.
 - **Fields:** token or pair, collection, brand/theme, current values, issue type, evidence, proposed solution, decision status and notes.
 - **Storage:** items are stored in this browser only (localStorage). Use **Export JSON** or **Export CSV** to share them.
 - **Import:** **Import** accepts either format and merges by ID, so re-importing an export updates items instead of duplicating them.
+
+## Comments and discussions
+
+Leave comments on tokens and colour pairs, and keep the discussion next to the colour, in the same way as Figma comments.
+
+**Three levels of comment:**
+- **Token:** for example `color/content/on-active`. Use the comment icon next to the token in the Explorer or the Matrix.
+- **Token in one brand / theme:** for example `color/content/on-active` in CP Dark. Click a Matrix cell, then choose **Comment on this mode**.
+- **Colour pair in one brand / theme:** a background, a foreground and a brand/theme, for example `color/content/on-active` on `color/content/active` in CP Dark. Use the comment icon beside the contrast ratio in the Pairing Lab.
+
+**The Discussion panel** opens on the right. It shows:
+- the token or pair
+- its collection
+- the selected brand / theme
+- the current colour and HEX (or the contrast, for a pair)
+- every thread, with authors, timestamps, replies and history
+
+From the panel you can:
+- add Figma links
+- **Resolve** or **Reopen** a thread
+- turn a thread into an **audit issue**
+
+Several discussions can exist on the same target. For token-level threads, **All on this token** shows the complete history, including mode and pair threads.
+
+**Indicators and filters:**
+- A blue count shows open discussions. A grey count means all discussions there are resolved.
+- In the Matrix, a small dot on a cell marks a mode-level discussion, so the matrix stays uncluttered.
+- **Unresolved comments** in the Explorer and the Matrix filters to tokens with open discussions.
+- **Comments** in the header lists every discussion.
+
+**Your name** is asked for once, and recorded with each comment.
+
+**Storage:**
+- Discussions are stored in this browser, separately from the token data, and survive data refreshes.
+- Use **Export** and **Import** in the panel footer to share them. Import merges by thread ID and never deletes.
+
+**Audit link:**
+- **Create audit issue** pre-fills an audit item with the discussion transcript.
+- The audit item lists its related discussions and the **Final agreed action**, and the thread shows its audit status.
+
+Resolving a discussion never changes Figma or any token value.
+
+The data model and a plan for a future GitHub Issues backend are in `docs/discussions.md`. That backend is not connected: authentication, access and repository visibility must be confirmed first.
 
 ## Printing
 

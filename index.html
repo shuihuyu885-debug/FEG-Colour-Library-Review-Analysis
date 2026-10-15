@@ -18,6 +18,7 @@
       <button role="tab" id="tab-explorer" aria-controls="view-explorer" aria-selected="true" data-view="explorer">Token Explorer</button>
       <button role="tab" id="tab-matrix" aria-controls="view-matrix" aria-selected="false" data-view="matrix">Brand × Theme Matrix</button>
       <button role="tab" id="tab-pairing" aria-controls="view-pairing" aria-selected="false" data-view="pairing">Colour Pairing Lab</button>
+      <button role="tab" id="tab-semantic" aria-controls="view-semantic" aria-selected="false" data-view="semantic">Pairing Audit</button>
       <button role="tab" id="tab-audit" aria-controls="view-audit" aria-selected="false" data-view="audit">Audit &amp; Decisions <span class="count-pill" id="audit-count">0</span></button>
     </nav>
     <div class="print-controls">
@@ -149,6 +150,41 @@
     </div>
   </section>
 
+  <!-- View 5: Semantic Pairing Audit -->
+  <section class="view" id="view-semantic" role="tabpanel" aria-labelledby="tab-semantic" hidden>
+    <div class="main">
+      <div class="sa-head">
+        <div>
+          <h2 class="sa-title">Semantic Pairing Audit</h2>
+          <p class="hint" id="sa-meta"></p>
+        </div>
+        <div class="seg" role="group" aria-label="Audit view">
+          <button type="button" data-sa-tab="matrix" aria-pressed="true">Contrast matrix</button>
+          <button type="button" data-sa-tab="findings" aria-pressed="false">Findings report</button>
+        </div>
+      </div>
+      <div class="sa-cards" id="sa-cards"></div>
+      <div class="toolbar">
+        <label class="field grow"><span>Search</span><input type="search" id="sa-search" placeholder="Token, finding ID or hex"></label>
+        <label class="field"><span>Pairing</span><select id="sa-class"><option value="">All pairings</option></select></label>
+        <label class="field"><span>Outcome</span><select id="sa-pattern"><option value="">All outcomes</option></select></label>
+        <label class="field"><span>Issue type</span><select id="sa-category"><option value="">All types</option></select></label>
+        <label class="field"><span>Severity</span><select id="sa-severity"><option value="">All</option><option>High</option><option>Medium</option><option>Low</option></select></label>
+        <label class="field"><span>Kind</span><select id="sa-kind"><option value="">Text and non-text</option><option value="text">Text</option><option value="non-text">Non-text (UI 3:1)</option></select></label>
+        <span class="result-count" id="sa-count"></span>
+      </div>
+      <h2 class="print-title" id="sa-print-title">Semantic Pairing Audit</h2>
+      <p class="print-meta" data-print-meta></p>
+      <div class="table-wrap" id="sa-matrix-wrap">
+        <table class="matrix sa-matrix" id="sa-matrix"><thead></thead><tbody></tbody></table>
+      </div>
+      <div class="table-wrap" id="sa-findings-wrap" hidden>
+        <table class="data-table sa-findings" id="sa-findings"><thead></thead><tbody></tbody></table>
+      </div>
+    </div>
+    <aside class="drawer" id="sa-detail" aria-label="Pairing detail" hidden></aside>
+  </section>
+
   <!-- View 4: Audit -->
   <section class="view" id="view-audit" role="tabpanel" aria-labelledby="tab-audit" hidden>
     <div class="main full">
@@ -221,6 +257,7 @@
   <aside id="discussion" class="discussion-panel" aria-label="Discussion" hidden></aside>
 
   <script src="data/nds-colour-tokens.js"></script>
+  <script src="data/semantic-audit.js"></script>
   <script src="discussions.js"></script>
   <script src="app.js"></script>
 </body>

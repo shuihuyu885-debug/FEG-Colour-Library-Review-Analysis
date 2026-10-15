@@ -1,0 +1,569 @@
+{
+ "description": "Semantic foreground/background pairings audited by tools/build-audit.mjs. Edit classifications and evidence here; nothing in this file changes Figma.",
+ "classifications": {
+  "Confirmed pairing": "Explicitly documented or named relationship.",
+  "Strong candidate": "Likely relationship from names, descriptions or audited component usage.",
+  "Needs design review": "Plausible, but not documented; needs design confirmation."
+ },
+ "pairs": [
+  {
+   "id": "P01",
+   "background": "color/surface/brand",
+   "foreground": "color/content/on-brand",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Brand / On Brand",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P02",
+   "background": "color/surface-hover/brand",
+   "foreground": "color/content/on-brand",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Brand / On Brand",
+   "evidence": "Hover state of surface/brand; same foreground expected."
+  },
+  {
+   "id": "P03",
+   "background": "color/surface/brand-dark",
+   "foreground": "color/content/on-brand",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Brand / On Brand",
+   "evidence": "Darker brand surface; 2026-10-14 Register Button audit used on-brand on brand-dark."
+  },
+  {
+   "id": "P04",
+   "background": "color/surface/brand",
+   "foreground": "color/content/on-sub-header",
+   "kind": "text",
+   "classification": "Needs design review",
+   "group": "Brand / On Brand",
+   "evidence": "Sub-header text; the surface behind it is not documented."
+  },
+  {
+   "id": "P05",
+   "background": "color/surface/sub-header-item",
+   "foreground": "color/content/on-sub-header-active",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Brand / On Brand",
+   "evidence": "Sub-header item tokens share the sub-header prefix."
+  },
+  {
+   "id": "P06",
+   "background": "color/surface/active",
+   "foreground": "color/content/on-active",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Active / On Active",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P07",
+   "background": "color/surface-hover/active",
+   "foreground": "color/content/on-active",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Active / On Active",
+   "evidence": "Hover state of surface/active."
+  },
+  {
+   "id": "P08",
+   "background": "color-perma/surface/active",
+   "foreground": "color-perma/content/on-active",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Active / On Active",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on. (perma variant)."
+  },
+  {
+   "id": "P09",
+   "background": "color-perma/surface/active-hover",
+   "foreground": "color-perma/content/on-active",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Active / On Active",
+   "evidence": "Hover state of color-perma/surface/active."
+  },
+  {
+   "id": "P10",
+   "background": "color/surface/primary",
+   "foreground": "color/content/active",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Active / On Active",
+   "evidence": "Active text or icon on the default surface (e.g. active tab label)."
+  },
+  {
+   "id": "P11",
+   "background": "color/surface/selected",
+   "foreground": "color/content/on-selected",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Selected / On Selected",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on. Primary button convention (surface/selected fill)."
+  },
+  {
+   "id": "P12",
+   "background": "color/surface-hover/selected",
+   "foreground": "color/content/on-selected",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Selected / On Selected",
+   "evidence": "Hover state of surface/selected."
+  },
+  {
+   "id": "P13",
+   "background": "color/surface/primary",
+   "foreground": "color/content/selected",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Selected / On Selected",
+   "evidence": "Selected text or icon on the default surface."
+  },
+  {
+   "id": "P14",
+   "background": "color/surface/highlighted",
+   "foreground": "color/content/on-highlighted",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Highlighted, badges and status",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P15",
+   "background": "color/surface/betslip-badge",
+   "foreground": "color/content/on-betslip-badge",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Highlighted, badges and status",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P16",
+   "background": "color/surface/notification-badge",
+   "foreground": "color/content/on-notification-badge",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Highlighted, badges and status",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P17",
+   "background": "color/surface/offer-badge",
+   "foreground": "color/content/on-offer-badge",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Highlighted, badges and status",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on. Level 1 offer badge set."
+  },
+  {
+   "id": "P18",
+   "background": "color/surface/primary",
+   "foreground": "color/content/offer-badge",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Highlighted, badges and status",
+   "evidence": "Outline offer badge: badge colour as text on the default surface."
+  },
+  {
+   "id": "P19",
+   "background": "color/meaning/positive",
+   "foreground": "color/content/on-positive",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P20",
+   "background": "color/meaning/negative",
+   "foreground": "color/content/on-negative",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P21",
+   "background": "color/meaning/warning",
+   "foreground": "color/content/on-warning",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P22",
+   "background": "color/meaning/info",
+   "foreground": "color/content/on-info",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P23",
+   "background": "color/meaning/money",
+   "foreground": "color/content/on-money",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P24",
+   "background": "color/meaning/win",
+   "foreground": "color/content/on-win",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P25",
+   "background": "color/meaning/live",
+   "foreground": "color/content/on-live",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Meaning / On Meaning",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on."
+  },
+  {
+   "id": "P26",
+   "background": "color/meaning-hover/positive",
+   "foreground": "color/content/on-positive",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Meaning / On Meaning",
+   "evidence": "Hover state of meaning/positive."
+  },
+  {
+   "id": "P27",
+   "background": "color/meaning-hover/negative",
+   "foreground": "color/content/on-negative",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Meaning / On Meaning",
+   "evidence": "Hover state of meaning/negative."
+  },
+  {
+   "id": "P28",
+   "background": "color/surface/primary",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Shared 'primary' role in surface and content; the base text pairing."
+  },
+  {
+   "id": "P29",
+   "background": "color/background/base",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Neutral surface family with default text."
+  },
+  {
+   "id": "P30",
+   "background": "color/surface/secondary",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Neutral surface family with default text."
+  },
+  {
+   "id": "P31",
+   "background": "color/surface/panel",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Neutral surface family with default text."
+  },
+  {
+   "id": "P32",
+   "background": "color/surface/action",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Neutral surface family with default text."
+  },
+  {
+   "id": "P33",
+   "background": "color/surface/navigation",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Neutral surface family with default text."
+  },
+  {
+   "id": "P34",
+   "background": "color/surface/input",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Neutral surface family with default text."
+  },
+  {
+   "id": "P35",
+   "background": "color/surface/primary",
+   "foreground": "color/content/secondary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Secondary text on the default surface."
+  },
+  {
+   "id": "P36",
+   "background": "color/background/base",
+   "foreground": "color/content/secondary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Secondary text on the page background."
+  },
+  {
+   "id": "P37",
+   "background": "color/surface/primary",
+   "foreground": "color/content/tertiary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Tertiary text on the default surface."
+  },
+  {
+   "id": "P38",
+   "background": "color/surface/input",
+   "foreground": "color/content/placeholder",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Placeholder text inside inputs."
+  },
+  {
+   "id": "P39",
+   "background": "color/surface/input-error",
+   "foreground": "color/content/error",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Error text on the error input surface."
+  },
+  {
+   "id": "P40",
+   "background": "color/surface/primary",
+   "foreground": "color/content/error",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Error text on the default surface."
+  },
+  {
+   "id": "P41",
+   "background": "color/surface/primary",
+   "foreground": "color/content/money",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Money text on the default surface."
+  },
+  {
+   "id": "P42",
+   "background": "color/surface/primary",
+   "foreground": "color/content/disabled",
+   "kind": "text",
+   "classification": "Needs design review",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Disabled text. WCAG exempts inactive components; shown for information.",
+   "note": "exempt"
+  },
+  {
+   "id": "P43",
+   "background": "color/content/primary",
+   "foreground": "color/content/on-content-primary",
+   "kind": "text",
+   "classification": "Confirmed pairing",
+   "group": "Primary Surface / Primary Content",
+   "evidence": "Explicit on-* naming: the foreground is named for the surface it sits on. (content/primary used as a fill). Deprecated in Level 1."
+  },
+  {
+   "id": "P44",
+   "background": "color/surface/inverted-bw",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Needs design review",
+   "group": "Inverted Surface / Content",
+   "evidence": "Reported combination (FTN works, PSK fails). Used for the Register button in the 2026-10-14 audit."
+  },
+  {
+   "id": "P45",
+   "background": "color/surface/inverted-bw",
+   "foreground": "color/content/primary-inverted",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Inverted Surface / Content",
+   "evidence": "Both names say 'inverted'."
+  },
+  {
+   "id": "P46",
+   "background": "color/content/primary",
+   "foreground": "color/content/primary-inverted",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Inverted Surface / Content",
+   "evidence": "primary-inverted read as text on a content/primary-coloured fill."
+  },
+  {
+   "id": "P47",
+   "background": "color/button/surface/default",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Button Surface / Button Content",
+   "evidence": "Translucent button fill with default text; result depends on the surface behind the button."
+  },
+  {
+   "id": "P48",
+   "background": "color/button/surface/regular/default",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Button Surface / Button Content",
+   "evidence": "Translucent button fill with default text; result depends on the surface behind the button."
+  },
+  {
+   "id": "P49",
+   "background": "color/odd-button/default",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Button Surface / Button Content",
+   "evidence": "Translucent button fill with default text; result depends on the surface behind the button."
+  },
+  {
+   "id": "P50",
+   "background": "color/overlay/tooltip-default",
+   "foreground": "color/content/primary",
+   "kind": "text",
+   "classification": "Needs design review",
+   "group": "Overlays",
+   "evidence": "Tooltip text token is not documented."
+  },
+  {
+   "id": "P51",
+   "background": "color/overlay/tooltip-default",
+   "foreground": "color/content/perma-white",
+   "kind": "text",
+   "classification": "Needs design review",
+   "group": "Overlays",
+   "evidence": "Alternative tooltip text; tooltip overlay is dark in both themes."
+  },
+  {
+   "id": "P52",
+   "background": "color/overlay/error",
+   "foreground": "color/content/on-negative",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Overlays",
+   "evidence": "Error overlay with the matching on-meaning text."
+  },
+  {
+   "id": "P53",
+   "background": "color/overlay/info",
+   "foreground": "color/content/on-info",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Overlays",
+   "evidence": "Info overlay with the matching on-meaning text."
+  },
+  {
+   "id": "P54",
+   "background": "color/overlay/positive",
+   "foreground": "color/content/on-positive",
+   "kind": "text",
+   "classification": "Strong candidate",
+   "group": "Overlays",
+   "evidence": "Positive overlay with the matching on-meaning text."
+  },
+  {
+   "id": "P55",
+   "background": "color/surface/primary",
+   "foreground": "color/border/selected",
+   "kind": "non-text",
+   "classification": "Strong candidate",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Selected border on the default surface."
+  },
+  {
+   "id": "P56",
+   "background": "color/surface/primary",
+   "foreground": "color/border/brand",
+   "kind": "non-text",
+   "classification": "Strong candidate",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Brand border on the default surface (Level 1 token)."
+  },
+  {
+   "id": "P57",
+   "background": "color/surface/primary",
+   "foreground": "color/border/active",
+   "kind": "non-text",
+   "classification": "Strong candidate",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Active border on the default surface."
+  },
+  {
+   "id": "P58",
+   "background": "color/surface/primary",
+   "foreground": "color/border/input",
+   "kind": "non-text",
+   "classification": "Strong candidate",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Input border against the surface the input sits on."
+  },
+  {
+   "id": "P59",
+   "background": "color/surface/primary",
+   "foreground": "color/meaning/live",
+   "kind": "non-text",
+   "classification": "Strong candidate",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Live indicator dot on the default surface."
+  },
+  {
+   "id": "P60",
+   "background": "color/surface/brand",
+   "foreground": "color/surface/inverted-bw",
+   "kind": "non-text",
+   "classification": "Needs design review",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Register button fill on a brand header (2026-10-14 Register Button audit)."
+  },
+  {
+   "id": "P61",
+   "background": "color/surface/brand",
+   "foreground": "color/surface/selected",
+   "kind": "non-text",
+   "classification": "Needs design review",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Primary button fill on a brand header (2026-10-14 Register Button audit)."
+  },
+  {
+   "id": "P62",
+   "background": "color/surface/primary",
+   "foreground": "color/surface/inverted-bw",
+   "kind": "non-text",
+   "classification": "Needs design review",
+   "group": "Non-text (UI 3:1)",
+   "evidence": "Inverted surface against the default surface."
+  }
+ ]
+}

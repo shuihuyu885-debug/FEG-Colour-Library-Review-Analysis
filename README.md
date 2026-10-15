@@ -43,6 +43,8 @@ No legacy Sportsbook tokens and no GitHub snapshots are used.
 | `index.html`, `styles.css`, `app.js` | The dashboard: plain HTML, CSS and JavaScript, with no frameworks or dependencies. |
 | `discussions.js` | Discussion data model, local persistence and import/merge logic, kept separate from the UI. |
 | `docs/discussions.md` | Discussion data structure and the plan for a shared backend. |
+| `data/semantic-pairs.json` | Pairings audited by the Semantic Pairing Audit (editable). |
+| `tools/build-audit.mjs` | Builds `data/semantic-audit.json`/`.js` and `reports/NDS_Semantic_Pairing_Audit.md`. |
 | `data/figma-variables-raw.json` | Raw export from Figma: collections, modes, variable IDs and keys, names, descriptions, scopes, and the value per mode (alias or colour). |
 | `data/nds-colour-tokens.json` | **Complete exported token data**: the raw export plus resolved values, alias chains, "aliased by" lists and resolution rules. |
 | `data/nds-colour-tokens.js` | The same data as a script, so `index.html` works from disk. |
@@ -93,6 +95,57 @@ No legacy Sportsbook tokens and no GitHub snapshots are used.
 - **Fields:** token or pair, collection, brand/theme, current values, issue type, evidence, proposed solution, decision status and notes.
 - **Storage:** items are stored in this browser only (localStorage). Use **Export JSON** or **Export CSV** to share them.
 - **Import:** **Import** accepts either format and merges by ID, so re-importing an export updates items instead of duplicating them.
+
+### 5. Semantic Pairing Audit
+
+This is a read-only audit of foreground/background combinations across FTN, CP and PSK (Dark and Light) and LobBet.
+
+**Pairings**
+- **Where they are defined:** `data/semantic-pairs.json`, which the design team can edit.
+- **What each pairing records:** a classification and the evidence for it.
+- **Classifications:**
+  - **Confirmed pairing**, for example the explicit `on-*` naming.
+  - **Strong candidate**, from names, descriptions or audited component usage.
+  - **Needs design review**.
+- Not every surface is paired with every content token.
+
+**Contrast check**
+- WCAG 2.x contrast for every pairing in all seven contexts:
+  - Text: AA 4.5:1, AA large 3:1 and AAA.
+  - Non-text: 3:1.
+- Ratios are compared unrounded and shown truncated, so 2.996:1 shows as 2.99 and fails.
+- Translucent backgrounds are marked context-dependent rather than passed.
+
+**Contrast matrix**
+- Each cell shows a live preview, the ratio and the status. Failing cells are highlighted.
+- Click a cell to see:
+  - the alias chains for both tokens
+  - a side-by-side comparison with a working mode (same brand first)
+  - the findings
+  - comment buttons at pair, mode and token level
+
+**Findings report**
+- A prioritised list (`SPA-001`...). Each finding records:
+  - severity
+  - type: confirmed failure, alias anomaly, or hypothesis
+  - category: A. wrong semantic usage, B. wrong value or alias, C. invalid pairing, D. cross-brand/theme inconsistency, or E. requires design decision
+  - values
+  - lowest ratio
+  - root-cause hypothesis
+  - evidence
+  - confidence
+  - next step
+  - review status
+- **Add to Audit** pre-fills an audit item tagged with the finding ID. Once it exists, the button opens that item instead, so existing decisions are never overwritten.
+
+**Report and rebuild**
+- `reports/NDS_Semantic_Pairing_Audit.md` is a printable report of the same findings.
+- To rebuild after a data update, or after editing the pairings:
+
+```sh
+node tools/build-data.mjs     # token data from the Figma export
+node tools/build-audit.mjs    # audit, dashboard data and report
+```
 
 ## Comments and discussions
 

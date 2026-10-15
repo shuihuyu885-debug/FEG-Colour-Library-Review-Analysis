@@ -101,6 +101,7 @@
     initMatrix();
     initPairing();
     initAudit();
+    initSemantic();
     initPrint();
     initDiscussions();
     document.addEventListener('keydown', (e) => {
@@ -133,7 +134,7 @@
       });
     });
     const initial = location.hash.slice(1) || store.get(KEYS.view, 'explorer');
-    showView(['explorer', 'matrix', 'pairing', 'audit'].includes(initial) ? initial : 'explorer');
+    showView(['explorer', 'matrix', 'pairing', 'semantic', 'audit'].includes(initial) ? initial : 'explorer');
   }
 
   // ---------- View 1: Explorer ----------
@@ -352,6 +353,8 @@
   const lum = ([r, g, b]) => 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
   const over = (top, a, under) => top.map((c, i) => c * a + under[i] * (1 - a));
   const ratio = (a, b) => { const [l1, l2] = [lum(a), lum(b)].sort((x, y) => y - x); return (l1 + 0.05) / (l2 + 0.05); };
+  // Truncate for display so a failing 2.996:1 never shows as 3.00:1.
+  const fmtRatio = (r) => (Math.floor(r * 100) / 100).toFixed(2);
   const rgbCss = (rgb) => `rgb(${rgb.map((x) => Math.round(x)).join(', ')})`;
 
   function initPairing() {
@@ -394,7 +397,7 @@
       <h3>Background <span class="mono">${esc(bgVar.name)}</span></h3>
       <div class="table-wrap"><table class="pair-table">
         <thead><tr><th>Brand × theme</th><th>Background</th>${fgs.map((f, i) => `<th class="fg-head" colspan="2">${i === 0 ? 'Foreground' : 'Alternative'}<div class="tok" style="text-transform:none;letter-spacing:0">${esc(f.name)}</div>
-          <div class="behaviour" style="text-transform:none;letter-spacing:0">Lowest ${summary[i].min.toFixed(2)}:1 · normal-text AA fails in ${summary[i].fails} of ${ctxs.length}</div>
+          <div class="behaviour" style="text-transform:none;letter-spacing:0">Lowest ${fmtRatio(summary[i].min)}:1 · normal-text AA fails in ${summary[i].fails} of ${ctxs.length}</div>
           <button type="button" class="btn btn-small no-print" data-flag="${i}">Flag pair</button></th>`).join('')}</tr></thead>
         <tbody>${ctxs.map((c) => {
           const bgv = bgVar.resolvedByContext[c];
@@ -406,7 +409,7 @@
               return `<td class="fg-head"><div class="sample" style="background:${rgbCss(x.bgRgb)};color:${rgbCss(x.fgRgb)}">
                   <span class="big">Aa 1.85</span><span class="small">Normal text sample</span><span class="ui" style="background:${rgbCss(x.fgRgb)}"></span></div>
                   <div class="muted" style="font-size:11px;margin-top:2px">${valText(x.fgv)}</div></td>
-                <td><div class="ratio-row"><div class="ratio">${x.r.toFixed(2)}:1</div>${cmtButton(`data-cmt-pair="${esc(bgVar.id)}|${esc(f.id)}|${c}"`, D.forKey(`pair:${bgVar.id}|${f.id}@${c}`), `${f.name} on ${bgVar.name} in ${CTX.get(c).label}`)}</div>${badge(x.normal, 'Text AA')}<br>${badge(x.large, 'Large AA')}<br>${badge(x.ui, 'UI 3:1')}
+                <td><div class="ratio-row"><div class="ratio">${fmtRatio(x.r)}:1</div>${cmtButton(`data-cmt-pair="${esc(bgVar.id)}|${esc(f.id)}|${c}"`, D.forKey(`pair:${bgVar.id}|${f.id}@${c}`), `${f.name} on ${bgVar.name} in ${CTX.get(c).label}`)}</div>${badge(x.normal, 'Text AA')}<br>${badge(x.large, 'Large AA')}<br>${badge(x.ui, 'UI 3:1')}
                   ${x.composited ? '<div class="behaviour">alpha composited</div>' : ''}</td>`;
             }).join('')}</tr>`;
         }).join('')}</tbody>
@@ -417,7 +420,7 @@
     }));
     $$('#pl-results [data-flag]').forEach((b) => b.addEventListener('click', () => {
       const f = fgs[+b.dataset.flag];
-      const lines = ctxs.map((c) => { const x = pairCell(bgVar, f, c); return `${CTX.get(c).label} ${x.error ? 'unresolved' : x.r.toFixed(2) + ':1'}`; });
+      const lines = ctxs.map((c) => { const x = pairCell(bgVar, f, c); return `${CTX.get(c).label} ${x.error ? 'unresolved' : fmtRatio(x.r) + ':1'}`; });
       const anyFail = ctxs.some((c) => { const x = pairCell(bgVar, f, c); return !x.error && !x.normal; });
       prefillAudit({ subject: `${f.name} on ${bgVar.name}`, collection: 'Pair', context: 'All', values: lines.join('; '), issueType: anyFail ? 'Poor colour contrast' : '' });
     }));
@@ -429,7 +432,7 @@
   const parseIds = (s) => String(s || '').split(/[;,\s]+/).map((x) => x.trim()).filter(Boolean);
   let audit = store.get(KEYS.audit, []);
   const au = { status: '', search: '' };
-  const saveAudit = () => { if (!store.set(KEYS.audit, audit)) alert('Could not save to localStorage in this browser. Export your items to keep them.'); $('#audit-count').textContent = audit.length; };
+  const saveAudit = () => { if (!store.set(KEYS.audit, audit)) alert('Could not save to localStorage in this browser. Export your items to keep them.'); $('#audit-count').textContent = audit.length; if (window.NDS_AUDIT && SA) renderSemantic(); };
   const uid = () => 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 
   function initAudit() {
@@ -550,6 +553,223 @@
     }).catch((err) => alert('Import failed: ' + err.message)).finally(() => { e.target.value = ''; });
   }
 
+  // ---------- View 5: Semantic Pairing Audit ----------
+  let SA = null;
+  const sa = { tab: 'matrix', search: '', cls: '', pattern: '', category: '', severity: '', kind: '', selected: null, ctx: null, compare: null };
+  const STATUS_LABEL = { pass: 'Pass', fail: 'Fail', context: 'Context', unresolved: 'Unresolved' };
+  const ISSUE_TYPE_FOR = { A: 'Incorrect semantic usage', B: 'Incorrect token value', C: 'Incorrect semantic usage', D: 'Inconsistent brand/theme behaviour', E: 'Requires design review' };
+  const pairKeyPrefix = (p) => `pair:${BY_NAME.get(p.background)?.id}|${BY_NAME.get(p.foreground)?.id}@`;
+  const pairThreads = (p) => D.all().filter((t) => t.target.key.startsWith(pairKeyPrefix(p)));
+  // Audit items created from a finding carry its ID; existing review decisions are never overwritten.
+  const auditFor = (f) => audit.find((a) => (a.notes || '').includes(`[${f.id}]`) || (a.evidence || '').includes(`[${f.id}]`));
+  const findingsFor = (p) => SA.findings.filter((f) => f.pairId === p.id);
+
+  function initSemantic() {
+    SA = window.NDS_AUDIT;
+    if (!SA) { $('#view-semantic .main').innerHTML = '<p class="empty">Audit data not found. Run <code>node tools/build-audit.mjs</code>.</p>'; return; }
+    $('#sa-meta').textContent = `${SA.summary.pairs} pairings across ${SA.meta.contexts.length} brand/theme contexts, built ${SA.meta.builtAt.slice(0, 16).replace('T', ' ')} UTC from Figma data exported ${SA.meta.tokensExportedAt.slice(0, 16).replace('T', ' ')} UTC. Read-only: findings are inputs for review, not decisions.`;
+    $('#sa-class').innerHTML += Object.keys(SA.meta.classifications).map((c) => `<option>${esc(c)}</option>`).join('');
+    $('#sa-pattern').innerHTML += `<optgroup label="Groups">${Object.entries(PATTERN_GROUPS).map(([k, g]) => `<option value="${k}">${esc(g.label)}</option>`).join('')}</optgroup>`
+      + `<optgroup label="Outcomes">${Object.entries(SA.meta.patterns).map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</optgroup>`;
+    $('#sa-category').innerHTML += Object.entries(SA.meta.categories).map(([k, l]) => `<option value="${k}">${k}. ${esc(l)}</option>`).join('');
+    const bind = (id, key) => $(id).addEventListener(id === '#sa-search' ? 'input' : 'change', (e) => { sa[key] = e.target.value.trim(); renderSemantic(); });
+    bind('#sa-search', 'search'); bind('#sa-class', 'cls'); bind('#sa-pattern', 'pattern'); bind('#sa-category', 'category'); bind('#sa-severity', 'severity'); bind('#sa-kind', 'kind');
+    $$('[data-sa-tab]').forEach((b) => b.addEventListener('click', () => { setSaTab(b.dataset.saTab); renderSemantic(); }));
+    renderSemantic();
+  }
+  function setSaTab(tab) {
+    sa.tab = tab;
+    $$('[data-sa-tab]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.saTab === tab)));
+  }
+  // Outcome groups used by the summary tiles and the Outcome filter.
+  const PATTERN_GROUPS = {
+    'fails-any': { label: 'Fails somewhere', patterns: ['fails-everywhere', 'fails-dark', 'fails-light', 'fails-some-brands'] },
+    'fails-theme': { label: 'Fails in one theme only', patterns: ['fails-dark', 'fails-light'] },
+    context: { label: 'Context-dependent (all)', patterns: ['context-pass', 'context-risk'] },
+  };
+  const patternOk = (pat) => !sa.pattern || (PATTERN_GROUPS[sa.pattern]?.patterns || [sa.pattern]).includes(pat);
+  function saCards() {
+    const s = SA.summary, pt = s.byPattern;
+    const failing = pt['fails-everywhere'] + pt['fails-dark'] + pt['fails-light'] + pt['fails-some-brands'];
+    const noOtherFilters = !sa.cls && !sa.category && !sa.severity && !sa.kind && !sa.search;
+    const card = (n, label, sub, filter) => {
+      const active = noOtherFilters && sa.tab === filter.tab && sa.pattern === (filter.pattern || '');
+      return `<button type="button" class="sa-card" aria-pressed="${active}" data-sa-filter='${esc(JSON.stringify(filter))}'><span class="sa-n">${n}</span><span class="sa-l">${esc(label)}</span>${sub ? `<span class="sa-s">${sub}</span>` : ''}</button>`;
+    };
+    $('#sa-cards').innerHTML = [
+      card(s.pairs, 'Pairings audited', Object.entries(s.byClassification).map(([k, n]) => `${n} ${({ Confirmed: 'confirmed', Strong: 'strong', Needs: 'to review' })[k.split(' ')[0]] || esc(k)}`).join(' · '), { tab: 'matrix' }),
+      card(pt.pass, 'Pass in all brands and themes', 'text and non-text', { tab: 'matrix', pattern: 'pass' }),
+      card(pt['fails-some-brands'], 'Fail in specific brands', 'cross-brand', { tab: 'matrix', pattern: 'fails-some-brands' }),
+      card(pt['fails-dark'] + pt['fails-light'], 'Fail in one theme only', `${pt['fails-dark']} Dark · ${pt['fails-light']} Light`, { tab: 'matrix', pattern: 'fails-theme' }),
+      card(pt['fails-everywhere'], 'Fail everywhere', 'likely invalid or wrong value', { tab: 'matrix', pattern: 'fails-everywhere' }),
+      card(pt['context-pass'] + pt['context-risk'], 'Context-dependent', `translucent backgrounds · ${pt['context-risk']} at risk`, { tab: 'matrix', pattern: 'context' }),
+      card(s.findings, 'Findings', `<span class="sev High">${s.bySeverity.High} high</span> <span class="sev Medium">${s.bySeverity.Medium} medium</span> <span class="sev Low">${s.bySeverity.Low} low</span>`, { tab: 'findings' }),
+    ].join('');
+    $$('#sa-cards [data-sa-filter]').forEach((b) => b.addEventListener('click', () => {
+      const f = JSON.parse(b.dataset.saFilter);
+      Object.assign(sa, { pattern: '', cls: '', category: '', severity: '', kind: '', search: '' }, { pattern: f.pattern || '' });
+      setSaTab(f.tab);
+      ['#sa-search', '#sa-class', '#sa-pattern', '#sa-category', '#sa-severity', '#sa-kind'].forEach((id) => { $(id).value = sa[{ '#sa-search': 'search', '#sa-class': 'cls', '#sa-pattern': 'pattern', '#sa-category': 'category', '#sa-severity': 'severity', '#sa-kind': 'kind' }[id]] || ''; });
+      renderSemantic();
+    }));
+  }
+  function pairMatches(p) {
+    const q = sa.search.toLowerCase();
+    const fs = findingsFor(p);
+    return (!sa.cls || p.classification === sa.cls) && patternOk(p.pattern) && (!sa.kind || p.kind === sa.kind)
+      && (!sa.category || fs.some((f) => f.category === sa.category)) && (!sa.severity || fs.some((f) => f.severity === sa.severity))
+      && (!q || [p.background, p.foreground, p.id, ...fs.map((f) => f.id), ...p.results.flatMap((r) => [r.bg, r.fg])].some((x) => String(x).toLowerCase().includes(q)));
+  }
+  function findingMatches(f) {
+    const q = sa.search.toLowerCase();
+    const p = SA.pairs.find((x) => x.id === f.pairId);
+    return (!sa.cls || f.classification === sa.cls) && (!sa.pattern || patternOk(f.pattern) || (p && patternOk(p.pattern))) && (!sa.kind || f.kind === sa.kind)
+      && (!sa.category || f.category === sa.category) && (!sa.severity || f.severity === sa.severity)
+      && (!q || [f.id, f.background, f.foreground, f.token, f.hypothesis].some((x) => String(x || '').toLowerCase().includes(q)));
+  }
+  const rgbOf = (a) => `rgb(${a.join(', ')})`;
+  function previewTile(p, r) {
+    if (!r.preview) return `<span class="sa-tile err">?</span>`;
+    const inner = p.kind === 'non-text' ? `<i class="sa-ui" style="background:${rgbOf(r.preview.fg)}"></i>` : `<b style="color:${rgbOf(r.preview.fg)}">Aa</b>`;
+    return `<span class="sa-tile" style="background:${rgbOf(r.preview.bg)}">${inner}</span>`;
+  }
+  function renderSemantic() {
+    if (!SA) return;
+    saCards();
+    const showM = sa.tab === 'matrix';
+    $('#sa-matrix-wrap').hidden = !showM; $('#sa-findings-wrap').hidden = showM;
+    $('#sa-print-title').textContent = `Semantic Pairing Audit: ${showM ? 'Contrast matrix' : 'Findings report'}`;
+    const ctxs = SA.meta.contexts;
+    if (showM) {
+      const rows = SA.pairs.filter(pairMatches);
+      $('#sa-count').textContent = `${rows.length} of ${SA.pairs.length} pairings`;
+      $('#sa-matrix thead').innerHTML = `<tr><th class="name">Pairing</th>${ctxs.map((c) => `<th class="ctx${c.id === LOBBET ? ' sep' : ''}">${esc(c.label)}</th>`).join('')}</tr>`;
+      let last = null; const html = [];
+      for (const p of rows) {
+        if (p.group !== last) { html.push(`<tr class="group-row"><td colspan="${ctxs.length + 1}">${esc(p.group)}</td></tr>`); last = p.group; }
+        const fs = findingsFor(p);
+        html.push(`<tr data-pair="${p.id}"><td class="name">
+          <div class="tok-row"><div><div class="tok">${esc(p.foreground)}</div><div class="muted sa-on">on <span class="mono">${esc(p.background)}</span></div></div>
+          ${cmtButton(`data-sa-cmt="${p.id}"`, pairThreads(p), `${p.foreground} on ${p.background}`)}</div>
+          <div class="sa-tags"><span class="tag sa-cls">${esc(p.classification)}</span> <span class="tag">${p.kind === 'non-text' ? 'UI 3:1' : 'Text'}</span> <span class="behaviour">${esc(p.patternLabel)}</span>
+          ${fs.map((f) => `<span class="sev ${f.severity}">${f.id}</span>`).join(' ')}</div></td>
+          ${p.results.map((r) => {
+            const th = D.forKey(`${pairKeyPrefix(p)}${r.ctx}`); const c = D.counts(th);
+            return `<td class="cell sa-cell ${r.status}${r.ctx === LOBBET ? ' sep' : ''}"><button type="button" data-sa-cell="${p.id}|${r.ctx}" aria-label="${esc(p.foreground)} on ${esc(p.background)} in ${esc(CTX.get(r.ctx).label)}: ${r.ratio ?? '?'}:1 ${STATUS_LABEL[r.status]}">
+              ${previewTile(p, r)}<span class="sa-r"><span class="ratio-sm">${r.ratio != null ? r.ratio.toFixed(2) : '?'}</span><span class="st ${r.status}${r.status === 'context' && !r.pass ? ' risk' : ''}">${STATUS_LABEL[r.status]}</span></span>
+              ${c.total ? `<span class="cell-dot ${c.open ? 'open' : 'resolved'}">${c.open || c.total}</span>` : ''}</button></td>`;
+          }).join('')}</tr>`);
+      }
+      $('#sa-matrix tbody').innerHTML = html.join('') || `<tr><td class="empty" colspan="${ctxs.length + 1}">No pairings match.</td></tr>`;
+    } else {
+      const rows = SA.findings.filter(findingMatches);
+      $('#sa-count').textContent = `${rows.length} of ${SA.findings.length} findings`;
+      $('#sa-findings thead').innerHTML = '<tr><th>ID</th><th>Severity</th><th>Type</th><th>Token pair</th><th>Brand / Theme</th><th>Current values</th><th>Lowest ratio</th><th>Issue type</th><th>Root cause hypothesis</th><th>Confidence</th><th>Recommended next step</th><th>Review status</th><th class="no-print">Actions</th></tr>';
+      $('#sa-findings tbody').innerHTML = rows.map((f) => {
+        const a = auditFor(f);
+        const where = (f.failing.length ? f.failing : f.contextRisk).map((c) => CTX.get(c).label).join(', ') || 'All pass (see hypothesis)';
+        const vals = f.values.slice(0, 3).map((v) => `${esc(CTX.get(v.ctx).label)}: ${esc(v.fg)}${v.bg ? ` on ${esc(v.bg)}` : ''}${v.ratio != null ? ` (${v.ratio}:1)` : ''}`).join('<br>') + (f.values.length > 3 ? `<br><span class="muted">+${f.values.length - 3} more</span>` : '');
+        return `<tr data-finding="${f.id}">
+          <td class="mono"><strong>${f.id}</strong></td><td><span class="sev ${f.severity}">${f.severity}</span></td><td>${esc(f.type)}</td>
+          <td><div class="tok">${esc(f.foreground || f.token)}</div>${f.background ? `<div class="muted sa-on">on <span class="mono">${esc(f.background)}</span></div>` : ''}</td>
+          <td>${esc(where)}</td><td class="mono" style="font-size:11px">${vals || '<span class="muted">See evidence</span>'}</td>
+          <td class="ratio-sm">${f.minRatio ?? 'n/a'}</td><td>${f.category}. ${esc(f.categoryLabel)}</td>
+          <td class="desc">${esc(f.hypothesis)}</td><td>${esc(f.confidence)}</td><td class="desc">${esc(f.next)}</td>
+          <td>${a ? `<span class="status status-${esc((a.status || '').replace(/\s/g, ''))}">${esc(a.status)}</span>` : '<span class="muted">Not reviewed</span>'}</td>
+          <td class="no-print"><div class="sa-actions"><button type="button" class="btn btn-small" data-sa-open="${f.id}">Details</button>
+            <button type="button" class="btn btn-small" data-sa-audit="${f.id}">${a ? 'Open audit item' : 'Add to Audit'}</button></div></td></tr>`;
+      }).join('') || '<tr><td class="empty" colspan="13">No findings match.</td></tr>';
+    }
+    bindSemantic();
+    if (sa.selected && !$('#sa-detail').hidden) renderSemanticDetail();
+  }
+  function bindSemantic() {
+    $$('#sa-matrix [data-sa-cell]').forEach((b) => b.addEventListener('click', () => { const [pid, c] = b.dataset.saCell.split('|'); openSemanticDetail(pid, c); }));
+    $$('#sa-matrix [data-sa-cmt]').forEach((b) => b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const p = SA.pairs.find((x) => x.id === b.dataset.saCmt);
+      const firstFail = p.results.find((r) => r.status === 'fail')?.ctx || 'ftn-dark';
+      openDiscussion(D.pairTarget(BY_NAME.get(p.background), BY_NAME.get(p.foreground), CTX.get(firstFail)));
+    }));
+    $$('#sa-findings [data-sa-open]').forEach((b) => b.addEventListener('click', () => {
+      const f = SA.findings.find((x) => x.id === b.dataset.saOpen);
+      if (f.pairId) openSemanticDetail(f.pairId, f.failing[0] || 'ftn-dark', f.id);
+      else openDiscussion(D.tokenTarget(BY_NAME.get(f.token)));
+    }));
+    $$('#sa-findings [data-sa-audit]').forEach((b) => b.addEventListener('click', () => findingToAudit(SA.findings.find((x) => x.id === b.dataset.saAudit))));
+  }
+  function findingToAudit(f) {
+    const existing = auditFor(f);
+    if (existing) { showView('audit'); const row = $(`#au-table tr[data-id="${existing.id}"] [data-edit]`); if (row) row.click(); return; }
+    const where = (f.failing.length ? f.failing : f.contextRisk).map((c) => CTX.get(c).label).join(', ') || 'All';
+    prefillAudit({
+      subject: f.background ? `${f.foreground} on ${f.background}` : f.token,
+      collection: f.background ? 'Pair' : (BY_NAME.get(f.token)?.collection || ''),
+      context: where,
+      values: f.values.map((v) => `${CTX.get(v.ctx).label}: ${v.fg}${v.bg ? ` on ${v.bg}` : ''}${v.ratio != null ? ` = ${v.ratio}:1` : ''}`).join('; '),
+      issueType: f.type === 'Confirmed failure' && f.kind === 'text' && f.category !== 'B' ? 'Poor colour contrast' : ISSUE_TYPE_FOR[f.category],
+      evidence: `[${f.id}] ${f.type} · ${f.category}. ${f.categoryLabel} · confidence ${f.confidence}\n${f.hypothesis}\n${f.evidence.join('\n')}`,
+      proposal: f.next,
+      notes: `Source: Semantic Pairing Audit [${f.id}]`,
+    });
+  }
+  function openSemanticDetail(pairId, ctxId, findingId) {
+    sa.selected = pairId; sa.ctx = ctxId; sa.compare = null; sa.focusFinding = findingId || null;
+    $('#sa-detail').hidden = false;
+    renderSemanticDetail();
+  }
+  function chainList(names) { return `<ol class="chain">${(names || []).map((n) => `<li>${esc(n)}</li>`).join('')}</ol>`; }
+  function renderSemanticDetail() {
+    const p = SA.pairs.find((x) => x.id === sa.selected); if (!p) return;
+    const r = p.results.find((x) => x.ctx === sa.ctx) || p.results[0];
+    const working = p.results.filter((x) => x.status === 'pass');
+    const cmp = p.results.find((x) => x.ctx === (sa.compare || (r.status !== 'pass' ? working.find((w) => CTX.get(w.ctx).label.split(' ')[0] === CTX.get(r.ctx).label.split(' ')[0])?.ctx || working[0]?.ctx : p.results.find((x) => x.status === 'fail')?.ctx)));
+    const bgV = BY_NAME.get(p.background), fgV = BY_NAME.get(p.foreground);
+    const badges = (x) => p.kind === 'non-text' ? badge(x.ui, 'UI 3:1') : `${badge(x.aa, 'AA')} ${badge(x.aaLarge, 'AA large')} ${badge(x.aaa, 'AAA')}`;
+    const col = (x, title) => !x ? '' : `<div class="sa-col"><div class="sa-col-h">${esc(title)}: <strong>${esc(CTX.get(x.ctx).label)}</strong></div>
+      <div class="sample dp-sample" style="background:${x.preview ? rgbOf(x.preview.bg) : '#ccc'};color:${x.preview ? rgbOf(x.preview.fg) : '#000'}"><span class="big">Aa</span><span class="small">${x.ratio ?? '?'}:1</span></div>
+      <div class="sa-badges">${x.status === 'context' ? '<span class="badge fail">Context-dependent</span> ' : ''}${badges(x)}</div>
+      <div class="muted sa-lbl">Background ${esc(x.bg)}</div>${chainList(x.bgChain)}
+      <div class="muted sa-lbl">Foreground ${esc(x.fg)}</div>${chainList(x.fgChain)}
+      ${x.estimates ? `<div class="muted sa-lbl">Estimates: ${x.estimates.map((e) => `${e.ratio}:1 over ${esc(e.over)}`).join(', ')}</div>` : ''}</div>`;
+    const fs = findingsFor(p);
+    const d = $('#sa-detail');
+    d.innerHTML = `<button type="button" class="btn btn-small close" aria-label="Close">Close</button>
+      <div class="dp-kind">${esc(p.id)} · ${esc(p.classification)} · ${p.kind === 'non-text' ? 'Non-text (UI 3:1)' : 'Text'}</div>
+      <h3>${esc(p.foreground)}</h3><div class="muted">on <span class="mono">${esc(p.background)}</span></div>
+      <p class="muted" style="font-size:12px">${esc(p.evidence)}</p>
+      <p><span class="behaviour">${esc(p.patternLabel)}</span>${p.identicalDarkLight.length ? ` <span class="behaviour">· same value in Dark and Light: ${p.identicalDarkLight.map(esc).join(', ')} (not an error by itself)</span>` : ''}</p>
+      <table class="data-table sa-ctx-table"><tbody>${p.results.map((x) => `<tr data-sa-ctxrow="${x.ctx}" aria-selected="${x.ctx === r.ctx}"><td>${esc(CTX.get(x.ctx).label)}</td><td>${previewTile(p, x)}</td><td class="ratio-sm">${x.ratio ?? '?'}:1</td><td><span class="st ${x.status}${x.status === 'context' && !x.pass ? ' risk' : ''}">${STATUS_LABEL[x.status]}</span></td></tr>`).join('')}</tbody></table>
+      <h4>Compare</h4>
+      <label class="field"><span>Compare ${esc(CTX.get(r.ctx).label)} with</span><select data-sa-compare>${p.results.filter((x) => x.ctx !== r.ctx).map((x) => `<option value="${x.ctx}"${cmp && x.ctx === cmp.ctx ? ' selected' : ''}>${esc(CTX.get(x.ctx).label)} (${STATUS_LABEL[x.status]})</option>`).join('')}</select></label>
+      <div class="sa-compare">${col(r, 'Selected')}${col(cmp, 'Compared')}</div>
+      <h4>Comments</h4>
+      <p class="sa-actions">
+        <button type="button" class="btn btn-small" data-sa-c="pair">${ICON_COMMENT} Pair in ${esc(CTX.get(r.ctx).label)} (${D.forKey(`${pairKeyPrefix(p)}${r.ctx}`).length})</button>
+        <button type="button" class="btn btn-small" data-sa-c="fg-mode">${ICON_COMMENT} Foreground in ${esc(CTX.get(r.ctx).label)}</button>
+        <button type="button" class="btn btn-small" data-sa-c="bg-mode">${ICON_COMMENT} Background in ${esc(CTX.get(r.ctx).label)}</button>
+        <button type="button" class="btn btn-small" data-sa-c="fg">${ICON_COMMENT} Foreground token (${D.involving(fgV.id).length})</button>
+        <button type="button" class="btn btn-small" data-sa-c="bg">${ICON_COMMENT} Background token (${D.involving(bgV.id).length})</button>
+      </p>
+      <h4>Findings (${fs.length})</h4>
+      ${fs.length ? fs.map((f) => { const a = auditFor(f); return `<div class="sa-finding${f.id === sa.focusFinding ? ' focus' : ''}">
+        <div><strong class="mono">${f.id}</strong> <span class="sev ${f.severity}">${f.severity}</span> <span class="tag">${f.category}. ${esc(f.categoryLabel)}</span> <span class="muted">${esc(f.type)} · confidence ${esc(f.confidence)}</span></div>
+        <p>${esc(f.hypothesis)}</p>
+        <details><summary>Evidence (${f.evidence.length})</summary><ul>${f.evidence.map((e) => `<li class="mono" style="font-size:11px">${esc(e)}</li>`).join('')}</ul></details>
+        <p><strong>Next step:</strong> ${esc(f.next)}</p>
+        <p class="sa-actions"><span class="muted">Review: ${a ? `<span class="status status-${esc((a.status || '').replace(/\s/g, ''))}">${esc(a.status)}</span>` : 'Not reviewed'}</span>
+        <button type="button" class="btn btn-small" data-sa-audit="${f.id}">${a ? 'Open audit item' : 'Add to Audit'}</button></p></div>`; }).join('') : '<p class="muted">No findings: this pairing passes in every brand and theme.</p>'}`;
+    $('.close', d).addEventListener('click', () => { d.hidden = true; sa.selected = null; });
+    $$('[data-sa-ctxrow]', d).forEach((tr) => tr.addEventListener('click', () => { sa.ctx = tr.dataset.saCtxrow; sa.compare = null; renderSemanticDetail(); }));
+    $('[data-sa-compare]', d)?.addEventListener('change', (e) => { sa.compare = e.target.value; renderSemanticDetail(); });
+    $$('[data-sa-audit]', d).forEach((b) => b.addEventListener('click', () => findingToAudit(SA.findings.find((x) => x.id === b.dataset.saAudit))));
+    $$('[data-sa-c]', d).forEach((b) => b.addEventListener('click', () => {
+      const c = CTX.get(r.ctx);
+      const t = { pair: () => D.pairTarget(bgV, fgV, c), 'fg-mode': () => D.modeTarget(fgV, c), 'bg-mode': () => D.modeTarget(bgV, c), fg: () => D.tokenTarget(fgV), bg: () => D.tokenTarget(bgV) }[b.dataset.saC]();
+      openDiscussion(t, { ctx: r.ctx });
+    }));
+  }
+
   // ---------- Discussions (Figma-style comment panel) ----------
   const dp = { target: null, ctx: 'ftn-dark', scope: 'exact', filter: 'all', focus: null };
   const getAuthor = () => store.get(KEYS.author, '');
@@ -590,7 +810,7 @@
   // Re-render indicators everywhere when the store changes (tables keep their scroll position).
   function refreshDiscussionViews() {
     updateCommentCount();
-    renderExplorer(); renderMatrix(); renderPairing(); renderAudit();
+    renderExplorer(); renderMatrix(); renderPairing(); renderAudit(); renderSemantic();
     if (!$('#discussion').hidden) renderDiscussion();
   }
   function openDiscussion(target, opts = {}) {
@@ -628,7 +848,7 @@
         <div class="dp-meta"><span class="tag tag-${esc(t.foreground.collection)}">${esc(t.foreground.collection)}</span> <span class="tag tag-${esc(t.background.collection)}">${esc(t.background.collection)}</span></div>
         <label class="field dp-ctx"><span>Brand / Theme</span><select data-dp="retarget">${ctxOptions(t.context)}</select></label>
         ${x.error ? '<p class="err">Token not in the current export, or unresolved.</p>' : `<div class="dp-colour">
-          <div class="sample dp-sample" style="background:${rgbCss(x.bgRgb)};color:${rgbCss(x.fgRgb)}"><span class="big">Aa</span><span class="small">${x.r.toFixed(2)}:1</span></div>
+          <div class="sample dp-sample" style="background:${rgbCss(x.bgRgb)};color:${rgbCss(x.fgRgb)}"><span class="big">Aa</span><span class="small">${fmtRatio(x.r)}:1</span></div>
           <div><div>${swatch(x.bgv, 'sm')} ${valText(x.bgv)} <span class="muted">background</span></div><div>${swatch(x.fgv, 'sm')} ${valText(x.fgv)} <span class="muted">foreground</span></div>
           <div>${badge(x.normal, 'Text AA')} ${badge(x.ui, 'UI 3:1')}</div></div></div>`}`;
     }
@@ -716,7 +936,7 @@
       const bg = BY_ID.get(tg.background.id), fg = BY_ID.get(tg.foreground.id);
       const x = bg && fg ? pairCell(bg, fg, tg.context) : { error: true };
       subject = `${tg.foreground.name} on ${tg.background.name}`; collection = 'Pair'; context = tg.contextLabel;
-      values = x.error ? '' : `${plainVal(x.fgv)} on ${plainVal(x.bgv)} = ${x.r.toFixed(2)}:1`;
+      values = x.error ? '' : `${plainVal(x.fgv)} on ${plainVal(x.bgv)} = ${fmtRatio(x.r)}:1`;
     } else {
       const v = BY_ID.get(tg.tokenId);
       subject = tg.tokenName; collection = tg.collection;
@@ -815,7 +1035,8 @@
         ? `Collection: ${ex.collection === 'all' ? 'All' : ex.collection}${ex.group ? ` · Group: ${ex.group}` : ''}${ex.search ? ` · Search: "${ex.search}"` : ''} · Values shown for ${CTX.get(ex.ctx).label}`
         : view === 'view-matrix'
           ? `Collection: ${mx.collection === 'all' ? 'Theme + Brand' : mx.collection}${mx.group ? ` · Group: ${mx.group}` : ''}${mx.behaviour !== 'all' ? ` · ${BEHAVIOUR_LABEL[mx.behaviour]}` : ''}${mx.search ? ` · Search: "${mx.search}"` : ''}`
-          : view === 'view-audit' ? `${audit.length} item(s)${au.status ? ` · Status: ${au.status}` : ''}` : '';
+          : view === 'view-audit' ? `${audit.length} item(s)${au.status ? ` · Status: ${au.status}` : ''}`
+            : view === 'view-semantic' ? `${sa.tab === 'matrix' ? 'Contrast matrix' : 'Findings report'}${[sa.cls, sa.pattern, sa.category && `Type ${sa.category}`, sa.severity, sa.kind, sa.search && `Search "${sa.search}"`].filter(Boolean).map((x) => ' · ' + x).join('')} · audit built ${(window.NDS_AUDIT?.meta.builtAt || '').slice(0, 16).replace('T', ' ')} UTC` : '';
       const text = `Source: ${m.source.fileName} (${m.source.fileKey}) · data exported ${m.exportedAt.slice(0, 16).replace('T', ' ')} UTC · printed ${new Date().toISOString().slice(0, 16).replace('T', ' ')} UTC${filters ? ' · ' + filters : ''}`;
       $$('[data-print-meta]').forEach((el) => { el.textContent = text; });
     }

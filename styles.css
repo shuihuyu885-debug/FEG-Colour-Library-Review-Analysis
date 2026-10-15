@@ -471,3 +471,64 @@ input.invalid { box-shadow: 0 0 0 3px var(--red-soft); background: var(--surface
 @media print {
   .discussion-panel, .cmt, .cell-dot { display: none !important; }
 }
+
+/* ---------- Semantic Pairing Audit ---------- */
+.sa-head { flex: none; display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
+.sa-title { font-size: 22px; font-weight: 700; letter-spacing: -0.015em; }
+.sa-head .hint { margin: 4px 0 0; }
+.sa-cards { flex: none; display: grid; grid-template-columns: repeat(auto-fit, minmax(124px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.sa-card {
+  all: unset; box-sizing: border-box; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; cursor: pointer;
+  background: var(--surface); border-radius: var(--r-lg); box-shadow: var(--shadow-card); transition: box-shadow .15s ease;
+}
+.sa-card:hover { box-shadow: var(--shadow-card), 0 0 0 2px var(--tint-soft); }
+.sa-card:focus-visible { box-shadow: 0 0 0 3px var(--focus); }
+.sa-n { font-family: var(--font-display); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.sa-l { font-size: 12px; font-weight: 600; }
+.sa-s { font-size: 11px; color: var(--label-3); }
+.sev { display: inline-block; padding: 0 7px; border-radius: 980px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.sev.High { background: var(--red-soft); color: var(--red); }
+.sev.Medium { background: var(--orange-soft); color: var(--orange); }
+.sev.Low { background: var(--fill); color: var(--label-2); }
+.sa-tags { margin-top: 6px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.sa-on { font-size: 11px; }
+.sa-on .mono { font-size: 11px; }
+.sa-tile { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 30px; border-radius: 7px; box-shadow: inset 0 0 0 0.5px var(--swatch-edge); font-family: var(--font-display); font-size: 14px; }
+.sa-tile b { font-weight: 700; }
+.sa-ui { display: block; width: 26px; height: 6px; border-radius: 3px; }
+.sa-r { display: flex; flex-direction: column; line-height: 1.2; }
+.ratio-sm { font-family: var(--font-display); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 13px; }
+.st { font-size: 10.5px; font-weight: 700; }
+.st.pass { color: var(--green); }
+.st.fail { color: var(--red); }
+.st.context { color: var(--orange); }
+.st.context.risk { color: var(--red); }
+.st.unresolved { color: var(--red); }
+.sa-matrix td.cell { min-width: 108px; }
+.sa-cell.fail button { background: var(--red-soft); box-shadow: inset 0 0 0 1.5px var(--red); }
+.sa-cell.context button { background: var(--orange-soft); }
+.sa-findings td { font-size: 12px; }
+.sa-findings td:first-child, .sa-findings td:nth-child(2) { white-space: nowrap; }
+.sa-findings { min-width: 1500px; }
+.sa-findings .desc { max-width: 300px; }
+.sa-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sa-ctx-table td { padding: 5px 6px; vertical-align: middle; }
+.sa-ctx-table tr { cursor: pointer; }
+.sa-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.sa-col { min-width: 0; padding: 10px; border-radius: var(--r); background: var(--surface-2); box-shadow: inset 0 0 0 0.5px var(--separator); }
+.sa-col-h { font-size: 12px; margin-bottom: 6px; }
+.sa-col .dp-sample { width: 100%; margin-bottom: 6px; }
+.sa-col .chain li { font-size: 11px; word-break: break-word; }
+.sa-badges { margin-bottom: 6px; }
+.sa-lbl { font-size: 11px; margin-top: 4px; }
+.sa-finding { padding: 10px 12px; margin-bottom: 10px; border-radius: var(--r); box-shadow: inset 0 0 0 0.5px var(--separator-strong); }
+.sa-finding.focus { box-shadow: inset 0 0 0 2px var(--tint); }
+.sa-finding p { margin: 6px 0; font-size: 12.5px; }
+.sa-finding ul { margin: 4px 0; padding-left: 18px; }
+#view-semantic .drawer { flex-basis: 440px; }
+@media print {
+  .sa-cards, .sa-head .seg, #sa-detail { display: none !important; }
+  .sa-head .hint { display: block !important; }
+  .sa-cell.fail button { box-shadow: inset 0 0 0 1.5px #B00020; background: none; }
+}
+.sa-card[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--tint); background: color-mix(in srgb, var(--surface) 92%, var(--tint)); }

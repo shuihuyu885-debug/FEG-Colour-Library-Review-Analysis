@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>NDS Colour Explorer</title>
+  <link rel="stylesheet" href="styles.css">
+  <style id="page-size">@page { size: A3 landscape; margin: 10mm; }</style>
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <h1>NDS Colour Explorer</h1>
+      <p class="source" id="source-line">Loading data...</p>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Views">
+      <button role="tab" id="tab-explorer" aria-controls="view-explorer" aria-selected="true" data-view="explorer">Token Explorer</button>
+      <button role="tab" id="tab-matrix" aria-controls="view-matrix" aria-selected="false" data-view="matrix">Brand × Theme Matrix</button>
+      <button role="tab" id="tab-pairing" aria-controls="view-pairing" aria-selected="false" data-view="pairing">Colour Pairing Lab</button>
+      <button role="tab" id="tab-audit" aria-controls="view-audit" aria-selected="false" data-view="audit">Audit &amp; Decisions <span class="count-pill" id="audit-count">0</span></button>
+    </nav>
+    <div class="print-controls">
+      <label for="print-size">Print size</label>
+      <select id="print-size">
+        <option value="A3 landscape">A3 landscape</option>
+        <option value="A2 landscape">A2 landscape</option>
+      </select>
+      <button type="button" class="btn btn-primary" id="print-btn">Print</button>
+    </div>
+  </header>
+
+  <div id="data-problems" class="banner banner-warn" hidden></div>
+
+  <!-- View 1: Token Explorer -->
+  <section class="view" id="view-explorer" role="tabpanel" aria-labelledby="tab-explorer">
+    <aside class="sidebar" aria-label="Collections and groups">
+      <h2 class="sidebar-title">Collections</h2>
+      <ul class="nav-list" id="collection-list"></ul>
+      <h2 class="sidebar-title">Groups</h2>
+      <ul class="nav-list nav-groups" id="group-list"></ul>
+    </aside>
+    <div class="main">
+      <div class="toolbar">
+        <label class="field grow"><span>Search</span>
+          <input type="search" id="ex-search" placeholder="Name, description, hex or alias">
+        </label>
+        <label class="field"><span>Show values for</span>
+          <select id="ex-context"></select>
+        </label>
+        <label class="field check"><input type="checkbox" id="ex-allmodes" checked> <span>Mode strip</span></label>
+        <span class="result-count" id="ex-count"></span>
+      </div>
+      <h2 class="print-title">Full Token Overview</h2>
+      <p class="print-meta" data-print-meta></p>
+      <div class="table-wrap">
+        <table class="data-table" id="ex-table">
+          <thead>
+            <tr>
+              <th class="col-swatch">Colour</th>
+              <th>Token</th>
+              <th>Collection</th>
+              <th>Group</th>
+              <th>Description</th>
+              <th>Resolved</th>
+              <th>Alias</th>
+              <th>Modes</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <aside class="drawer" id="detail" aria-label="Token detail" hidden></aside>
+  </section>
+
+  <!-- View 2: Matrix -->
+  <section class="view" id="view-matrix" role="tabpanel" aria-labelledby="tab-matrix" hidden>
+    <div class="main full">
+      <div class="toolbar">
+        <label class="field grow"><span>Search</span>
+          <input type="search" id="mx-search" placeholder="Token name or hex">
+        </label>
+        <label class="field"><span>Collection</span>
+          <select id="mx-collection">
+            <option value="all">Theme + Brand</option>
+            <option value="Theme">Theme</option>
+            <option value="Brand">Brand</option>
+          </select>
+        </label>
+        <label class="field"><span>Group</span>
+          <select id="mx-group"></select>
+        </label>
+        <label class="field"><span>Behaviour</span>
+          <select id="mx-behaviour">
+            <option value="all">All rows</option>
+            <option value="uniform">Same in all contexts</option>
+            <option value="theme">Varies by theme only</option>
+            <option value="brand">Varies by brand</option>
+          </select>
+        </label>
+        <label class="field check"><input type="checkbox" id="mx-lobbet" checked> <span>LobBet</span></label>
+        <span class="result-count" id="mx-count"></span>
+      </div>
+      <p class="hint">Click a value to highlight every cell with the same resolved value. Matching values are shown for orientation only and do not mean tokens are redundant.</p>
+      <h2 class="print-title">Brand × Theme Matrix</h2>
+      <p class="print-meta" data-print-meta></p>
+      <div class="table-wrap">
+        <table class="matrix" id="mx-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- View 3: Pairing Lab -->
+  <section class="view" id="view-pairing" role="tabpanel" aria-labelledby="tab-pairing" hidden>
+    <div class="main full">
+      <div class="toolbar pairing-toolbar">
+        <label class="field grow"><span>Background</span>
+          <input list="token-options" id="pl-bg" placeholder="e.g. color/surface/primary">
+        </label>
+        <button type="button" class="btn" id="pl-swap" title="Swap background and foreground">Swap</button>
+        <label class="field grow"><span>Foreground</span>
+          <input list="token-options" id="pl-fg" placeholder="e.g. color/content/primary">
+        </label>
+        <label class="field grow"><span>Compare with alternative foreground</span>
+          <input list="token-options" id="pl-alt" placeholder="Add a token">
+        </label>
+        <button type="button" class="btn" id="pl-add">Add</button>
+        <datalist id="token-options"></datalist>
+      </div>
+      <div id="pl-alts" class="chips" aria-label="Alternative foregrounds"></div>
+      <p class="hint">
+        Contrast follows WCAG 2.x. Thresholds: normal text AA 4.5:1, large text AA 3:1, UI and non-text 3:1.
+        Translucent foregrounds are composited over the background; translucent backgrounds over <code>color/background/base</code> of the same context.
+        A passing ratio does not mean the pairing is semantically correct.
+      </p>
+      <h2 class="print-title">Colour Pairing Comparison</h2>
+      <p class="print-meta" data-print-meta></p>
+      <div id="pl-results"></div>
+    </div>
+  </section>
+
+  <!-- View 4: Audit -->
+  <section class="view" id="view-audit" role="tabpanel" aria-labelledby="tab-audit" hidden>
+    <div class="main full">
+      <div class="audit-layout">
+        <form id="audit-form" class="audit-form" autocomplete="off">
+          <h2 id="audit-form-title">Add review item</h2>
+          <input type="hidden" name="id">
+          <label class="field"><span>Token / Pair</span><input name="subject" list="token-options" required></label>
+          <label class="field"><span>Collection</span>
+            <select name="collection"><option></option><option>Base</option><option>Theme</option><option>Brand</option><option>Pair</option></select>
+          </label>
+          <label class="field"><span>Brand / Theme</span><input name="context" placeholder="e.g. CP Dark, or All"></label>
+          <label class="field"><span>Current values</span><input name="values" placeholder="Filled in from the token when available"></label>
+          <label class="field"><span>Issue type</span>
+            <select name="issueType" required>
+              <option></option>
+              <option>Incorrect semantic usage</option>
+              <option>Incorrect token value</option>
+              <option>Poor colour contrast</option>
+              <option>Inconsistent brand/theme behaviour</option>
+              <option>Unclear semantic ownership</option>
+              <option>Requires design review</option>
+            </select>
+          </label>
+          <label class="field"><span>Evidence</span><textarea name="evidence" rows="3"></textarea></label>
+          <label class="field"><span>Proposed solution</span><textarea name="proposal" rows="3"></textarea></label>
+          <label class="field"><span>Decision status</span>
+            <select name="status">
+              <option>Open</option><option>In review</option><option>Agreed</option><option>Rejected</option><option>Deferred</option><option>Done</option>
+            </select>
+          </label>
+          <label class="field"><span>Notes</span><textarea name="notes" rows="2"></textarea></label>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="audit-save">Add item</button>
+            <button type="button" class="btn" id="audit-cancel" hidden>Cancel edit</button>
+          </div>
+          <p class="hint">Saved in this browser only (localStorage). Export to share. Nothing is written to Figma.</p>
+        </form>
+        <div class="audit-list">
+          <div class="toolbar">
+            <label class="field"><span>Status</span>
+              <select id="au-status"><option value="">All</option><option>Open</option><option>In review</option><option>Agreed</option><option>Rejected</option><option>Deferred</option><option>Done</option></select>
+            </label>
+            <label class="field grow"><span>Search</span><input type="search" id="au-search"></label>
+            <button type="button" class="btn" id="au-export-json">Export JSON</button>
+            <button type="button" class="btn" id="au-export-csv">Export CSV</button>
+            <label class="btn file-btn">Import JSON/CSV<input type="file" id="au-import" accept=".json,.csv,application/json,text/csv"></label>
+          </div>
+          <h2 class="print-title">Audit &amp; Decision List</h2>
+          <p class="print-meta" data-print-meta></p>
+          <div class="table-wrap">
+            <table class="data-table" id="au-table">
+              <thead>
+                <tr><th>Token / Pair</th><th>Collection</th><th>Brand / Theme</th><th>Current values</th><th>Issue type</th><th>Evidence</th><th>Proposed solution</th><th>Status</th><th>Notes</th><th class="no-print">Actions</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="empty" id="au-empty">No review items yet. Flag a token from the Explorer or a pair from the Pairing Lab, or add one here.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div id="popover" class="popover" role="dialog" aria-modal="false" hidden></div>
+
+  <script src="data/nds-colour-tokens.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
